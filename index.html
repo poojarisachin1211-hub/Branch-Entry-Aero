@@ -8,10 +8,11 @@
 </style></head>
 <body><main class="wrap"><header class="brand"><div class="mark">枝</div><span>BRANCH ENTRY</span></header><div class="eyebrow">A little courage. A lot of laughs.</div><h1>Your Branch Entry starts here.</h1><p class="intro">Scan the card, reveal your challenge, and make your entrance. The room is ready for you.</p><section id="reveal"></section><p class="hint">There are no wrong moves. Well… there are a few. But they usually make the best stories.</p></main>
 <script>
-const p=new URLSearchParams(location.search),card=p.get('card'),saved=p.get('type')==='saved',task=p.get('task'),detail=p.get('detail');
+const p=new URLSearchParams(location.search),card=p.get('card');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const root=document.querySelector('#reveal');
-if(saved)root.innerHTML=`<article class="message saved"><span class="badge">${esc(card||'SAVED CARD')}</span><div class="eyebrow">A very exclusive prize</div><h2>🏆 CONGRATULATIONS!<br>You've won absolutely nothing.</h2><p>Still, you showed up. That counts for something.</p></article>`;
-else if(task)root.innerHTML=`<article class="message"><span class="badge">${esc(card||'YOUR CHALLENGE')}</span><div class="eyebrow">Your Branch Entry challenge</div><h2>${esc(task)}</h2><p>${esc(detail||'Your moment is now. Give it a go!')}</p></article>`;
-else root.innerHTML='<article class="message"><div class="eyebrow">Ready when you are</div><h2>Scan your invitation card to reveal your challenge.</h2><p>Each card has its own little surprise. Find an organiser if you need a hand.</p></article>';
+function waiting(){root.innerHTML=`<article class="message"><span class="badge">${esc(card||'INVITATION')}</span><div class="eyebrow">Still under wraps</div><h2>You scanned this too soon 🤐<br>The QR knows what’s coming. The QR is choosing silence.</h2><p>Come back on Branch Entry day and scan your card again.</p></article>`}
+function reveal(data){if(data.type==='saved')root.innerHTML=`<article class="message saved"><span class="badge">${esc(card||'SAVED CARD')}</span><div class="eyebrow">A very exclusive prize</div><h2>🏆 CONGRATULATIONS!<br>You've won absolutely nothing.</h2><p>Still, you showed up. That counts for something.</p></article>`;else if(data.task)root.innerHTML=`<article class="message"><span class="badge">${esc(card||'YOUR CHALLENGE')}</span><div class="eyebrow">Your Branch Entry challenge</div><h2>${esc(data.task)}</h2><p>${esc(data.detail||'Your moment is now. Give it a go!')}</p></article>`;else waiting()}
+if(!card)root.innerHTML='<article class="message"><div class="eyebrow">Ready when you are</div><h2>Scan your invitation card to reveal your challenge.</h2><p>Each card has its own little surprise. Find an organiser if you need a hand.</p></article>';
+else{waiting();fetch(new URL(`assignments.json?check=${Date.now()}`,location.href),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('not released');return r.json()}).then(data=>{if(data.cards&&data.cards[card])reveal(data.cards[card])}).catch(()=>{});}
 </script></body></html>
